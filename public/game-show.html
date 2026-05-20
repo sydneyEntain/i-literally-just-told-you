@@ -165,9 +165,14 @@ function connectSSE(){
 eventSource=new EventSource(API+'/api/game/events/'+roomCode);
 eventSource.addEventListener('player_joined',function(e){var d=JSON.parse(e.data);players=d.players;renderLobby()});
 eventSource.addEventListener('answer_submitted',function(e){
-var d=JSON.parse(e.data);playerAnswers[d.player]=d.answer;iqAnswers[d.player]=d.answer;
-var el=document.getElementById('answers-count');if(el)el.textContent=Object.keys(playerAnswers).length;
+var d=JSON.parse(e.data);
+if(document.getElementById('screen-intro-quiz').classList.contains('active')){
+iqAnswers[d.player]=d.answer;
 var el2=document.getElementById('iq-count');if(el2)el2.textContent=Object.keys(iqAnswers).length;
+}else{
+playerAnswers[d.player]=d.answer;
+var el=document.getElementById('answers-count');if(el)el.textContent=Object.keys(playerAnswers).length;
+}
 });
 }
 
@@ -227,7 +232,7 @@ document.getElementById('iq-waiting').style.display='block';
 document.getElementById('iq-reveal-area').innerHTML='';
 document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-next-btn').style.display='none';
-fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})});
+fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:'iq_'+iqIdx,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})});
 startIQTimer();
 }
 
@@ -243,17 +248,19 @@ document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-waiting').style.display='none';
 var q=iqQuestions[iqIdx];var correct=q.correctAnswer.toLowerCase().trim();
 var html='<div class="correct-answer-banner"><div class="label">Correct answer</div><div class="answer">"'+q.correctAnswer+'"</div></div><div class="reveal-grid">';
+var iqResults={};
 players.forEach(function(p){
 var answer=iqAnswers[p]||playerAnswers[p]||'(no answer)';
 var isCorrect=answer.toLowerCase().trim()===correct||correct.includes(answer.toLowerCase().trim())||answer.toLowerCase().trim().includes(correct);
 if(isCorrect)scores[p]=(scores[p]||0)+1;
+iqResults[p]={answer:answer,correct:isCorrect};
 html+='<div class="reveal-card '+(isCorrect?'correct-card':'wrong-card')+'"><div class="player-name">'+p+'</div><div class="player-answer">'+(isCorrect?'&#10003;':'&#10007;')+' "'+answer+'"</div></div>';
 });
 html+='</div>';
 document.getElementById('iq-reveal-area').innerHTML=html;
 document.getElementById('iq-next-btn').style.display='inline-block';
 renderScoreboardIQ();
-fetch(API+'/api/game/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx,results:{},correctAnswer:q.correctAnswer})});
+fetch(API+'/api/game/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx,results:iqResults,correctAnswer:q.correctAnswer})});
 }
 
 function iqNext(){iqIdx++;if(iqIdx>=iqQuestions.length){hostStartInterviews()}else{renderIQ()}}
