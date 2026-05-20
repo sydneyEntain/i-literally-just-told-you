@@ -232,8 +232,7 @@ document.getElementById('iq-waiting').style.display='block';
 document.getElementById('iq-reveal-area').innerHTML='';
 document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-next-btn').style.display='none';
-fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:'iq_'+iqIdx,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})});
-startIQTimer();
+fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:'iq_'+iqIdx,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})}).then(function(){startIQTimer()});
 }
 
 function startIQTimer(){
@@ -243,6 +242,7 @@ iqTimer=setInterval(function(){iqTimeLeft--;el.textContent=iqTimeLeft;if(iqTimeL
 }
 
 function iqReveal(){
+if(Object.keys(iqAnswers).length===0&&iqTimeLeft>0)return;
 clearInterval(iqTimer);
 document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-waiting').style.display='none';
