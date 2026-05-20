@@ -81,7 +81,7 @@ app.post('/api/game/answer', function(req, res) {
   if (!game) return res.status(404).json({ error: 'Room not found' });
   if (!game.answers[req.body.questionIndex]) game.answers[req.body.questionIndex] = {};
   game.answers[req.body.questionIndex][req.body.playerName] = req.body.answer;
-  gamecast(req.body.roomCode, 'answer_submitted', { player: req.body.playerName, answer: req.body.answer });
+  gamecast(req.body.roomCode, 'answer_submitted', { player: req.body.playerName, answer: req.body.answer, questionIndex: req.body.questionIndex });
   res.json({ ok: true });
 });
 

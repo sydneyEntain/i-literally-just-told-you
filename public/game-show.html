@@ -114,7 +114,7 @@ var roomCode='',players=[],eventSource=null,scores={};
 var interviewData=[],currentPlayerIdx=0,currentQIdx=0;
 var quizQuestions=[],currentQuizIdx=0,playerAnswers={},timerInterval=null,timeLeft=20;
 var currentIntroIdx=0,currentFactIdx=0;
-var iqQuestions=[],iqIdx=0,iqAnswers={},iqTimer=null,iqTimeLeft=20;
+var iqQuestions=[],iqIdx=0,iqAnswers={},iqTimer=null,iqTimeLeft=20,currentIQId=null,currentQuizId=null,iqRevealed=false;
 
 var CONTESTANTS=[
 {name:'Sai',photo:'photos/Sai.png',tagline:'The Quiet Creative',facts:[
@@ -166,10 +166,10 @@ eventSource=new EventSource(API+'/api/game/events/'+roomCode);
 eventSource.addEventListener('player_joined',function(e){var d=JSON.parse(e.data);players=d.players;renderLobby()});
 eventSource.addEventListener('answer_submitted',function(e){
 var d=JSON.parse(e.data);
-if(document.getElementById('screen-intro-quiz').classList.contains('active')){
+if(document.getElementById('screen-intro-quiz').classList.contains('active')&&d.questionIndex===currentIQId&&!iqRevealed){
 iqAnswers[d.player]=d.answer;
 var el2=document.getElementById('iq-count');if(el2)el2.textContent=Object.keys(iqAnswers).length;
-}else{
+}else if(document.getElementById('screen-quiz').classList.contains('active')&&d.questionIndex===currentQuizId){
 playerAnswers[d.player]=d.answer;
 var el=document.getElementById('answers-count');if(el)el.textContent=Object.keys(playerAnswers).length;
 }
@@ -223,16 +223,19 @@ renderIQ();
 function renderIQ(){
 var q=iqQuestions[iqIdx];
 iqAnswers={};playerAnswers={};
+iqRevealed=false;
 renderScoreboardIQ();
 document.getElementById('iq-round-info').textContent='Intro Quiz - '+(iqIdx+1)+' of '+iqQuestions.length;
 document.getElementById('iq-context').textContent='About '+q.aboutPlayer+'...';
 document.getElementById('iq-question').textContent=q.question;
 document.getElementById('iq-count').textContent='0';
 document.getElementById('iq-waiting').style.display='block';
+document.getElementById('iq-waiting').innerHTML='<span class="count" id="iq-count">0</span>answers submitted';
 document.getElementById('iq-reveal-area').innerHTML='';
 document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-next-btn').style.display='none';
-fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:'iq_'+iqIdx,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})}).then(function(){startIQTimer()});
+currentIQId='iq_'+iqIdx;
+fetch(API+'/api/game/send-question-direct',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:currentIQId,aboutPlayer:iqQuestions[iqIdx].aboutPlayer,question:iqQuestions[iqIdx].question})}).then(function(){startIQTimer()});
 }
 
 function startIQTimer(){
@@ -242,7 +245,8 @@ iqTimer=setInterval(function(){iqTimeLeft--;el.textContent=iqTimeLeft;if(iqTimeL
 }
 
 function iqReveal(){
-if(Object.keys(iqAnswers).length===0&&iqTimeLeft>0)return;
+if(iqRevealed)return;
+iqRevealed=true;
 clearInterval(iqTimer);
 document.getElementById('iq-reveal-btn').style.display='none';
 document.getElementById('iq-waiting').style.display='none';
@@ -315,7 +319,7 @@ document.getElementById('answers-waiting').style.display='block';
 document.getElementById('reveal-area').innerHTML='';
 document.getElementById('reveal-btn').style.display='none';
 document.getElementById('next-quiz-btn').style.display='none';
-fetch(API+'/api/game/send-question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:currentQuizIdx})});
+currentQuizId=currentQuizIdx;fetch(API+'/api/game/send-question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:currentQuizIdx})});
 startTimer();
 }
 
