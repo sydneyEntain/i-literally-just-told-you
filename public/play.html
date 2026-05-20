@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>I LITERALLY JUST TOLD YOU — Play</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#14141f;--surface-2:#1e1e2e;--accent:#f7c948;--accent-glow:rgba(247,201,72,0.3);--pink:#ff6b9d;--blue:#4ecdc4;--purple:#a855f7;--text:#f0f0f0;--text-dim:#8888aa;--correct:#4ecdc4;--wrong:#ff6b6b}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:400px;background:var(--surface);border:1px solid #2a2a3e;border-radius:20px;padding:32px 24px;text-align:center}
+.screen{display:none}.screen.active{display:block}
+.logo{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:24px}
+.input-group{margin-bottom:16px;text-align:left}
+.input-group label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.input-group input{width:100%;padding:14px 16px;background:var(--surface-2);border:1px solid #3a3a4e;border-radius:10px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s}
+.input-group input:focus{border-color:var(--accent)}
+.input-group input.code-input{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;text-align:center;letter-spacing:6px;text-transform:uppercase}
+.btn{width:100%;padding:16px;font-size:1rem;font-weight:600;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;margin-top:8px}
+.btn-primary{background:var(--accent);color:#0a0a0f}.btn-primary:hover{box-shadow:0 4px 20px var(--accent-glow)}.btn-primary:disabled{opacity:0.4;cursor:not-allowed}
+.status-msg{margin-top:16px;font-size:0.9rem;color:var(--text-dim)}.status-msg.error{color:var(--wrong)}
+.waiting-icon{font-size:3rem;margin-bottom:16px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.waiting-text{font-size:1rem;color:var(--text-dim);line-height:1.5}
+.player-name-display{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+.q-about{font-size:0.85rem;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.q-text{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:600;line-height:1.4;margin-bottom:20px}
+.answer-input{width:100%;padding:14px 16px;background:var(--surface-2);border:1px solid #3a3a4e;border-radius:10px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;resize:none;min-height:80px;transition:border-color 0.2s}
+.answer-input:focus{border-color:var(--accent)}
+.timer-bar{height:4px;background:var(--surface-2);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.timer-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear}.timer-bar-fill.urgent{background:var(--wrong)}
+.result-icon{font-size:3rem;margin-bottom:12px}
+.result-text{font-size:1.1rem;font-weight:600;margin-bottom:8px}.result-correct{color:var(--correct)}.result-wrong{color:var(--wrong)}
+.result-answer{font-size:0.9rem;color:var(--text-dim);margin-top:8px}
+.your-score{font-family:'Space Grotesk',sans-serif;font-size:2.5rem;font-weight:700;color:var(--accent);margin:16px 0}
+.final-position{font-family:'Space Grotesk',sans-serif;font-size:3rem;font-weight:700;color:var(--accent);margin-bottom:8px}
+.final-msg{font-size:1rem;color:var(--text-dim)}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="screen active" id="screen-join">
+<div class="logo">I LITERALLY JUST TOLD YOU</div>
+<div class="input-group"><label>Room Code</label><input type="text" id="input-code" class="code-input" maxlength="4" placeholder="----" autocomplete="off"></div>
+<div class="input-group"><label>Your Name</label><input type="text" id="input-name" placeholder="Enter your name" autocomplete="off"></div>
+<button class="btn btn-primary" onclick="joinGame()">Join Game</button>
+<div class="status-msg" id="join-status"></div>
+</div>
+<div class="screen" id="screen-waiting">
+<div class="waiting-icon">&#128066;</div>
+<div class="player-name-display" id="my-name-display"></div>
+<div class="waiting-text" id="waiting-text">You are in! Waiting for the host to start...</div>
+</div>
+<div class="screen" id="screen-listening">
+<div class="waiting-icon">&#127911;</div>
+<div class="waiting-text"><strong>Pay attention!</strong><br><br>The interviews are happening now.<br>Listen carefully - you will be quizzed on everything.</div>
+</div>
+<div class="screen" id="screen-answer">
+<div class="timer-bar"><div class="timer-bar-fill" id="timer-bar-fill"></div></div>
+<div class="q-about" id="q-about"></div>
+<div class="q-text" id="q-text"></div>
+<textarea class="answer-input" id="answer-input" placeholder="What did they say?"></textarea>
+<button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+<div class="status-msg" id="answer-status"></div>
+</div>
+<div class="screen" id="screen-result">
+<div class="result-icon" id="result-icon"></div>
+<div class="result-text" id="result-text"></div>
+<div class="result-answer" id="result-answer"></div>
+<div class="your-score" id="your-score"></div>
+<div class="waiting-text">Waiting for next question...</div>
+</div>
+<div class="screen" id="screen-final">
+<div class="waiting-icon">&#127942;</div>
+<div class="final-position" id="final-position"></div>
+<div class="player-name-display" id="final-name"></div>
+<div class="your-score" id="final-score"></div>
+<div class="final-msg" id="final-msg"></div>
+</div>
+</div>
+<script>
+var API='';
+var myName='';
+var roomCode='';
+var eventSource=null;
+var myScore=0;
+var currentQuestion=null;
+var timerInterval=null;
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.getElementById(id).classList.add('active')}
+
+async function joinGame(){
+roomCode=document.getElementById('input-code').value.trim().toUpperCase();
+myName=document.getElementById('input-name').value.trim();
+var status=document.getElementById('join-status');
+if(!roomCode||!myName){status.textContent='Please enter both a room code and your name';status.className='status-msg error';return}
+try{
+var res=await fetch(API+'/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,playerName:myName})});
+if(!res.ok){var err=await res.json();throw new Error(err.error||'Could not join')}
+document.getElementById('my-name-display').textContent=myName;
+showScreen('screen-waiting');
+connectSSE();
+}catch(e){status.textContent=e.message;status.className='status-msg error'}
+}
+
+function connectSSE(){
+eventSource=new EventSource(API+'/api/game/events/'+roomCode);
+eventSource.addEventListener('interviews_started',function(){showScreen('screen-listening')});
+eventSource.addEventListener('question',function(e){
+var data=JSON.parse(e.data);
+currentQuestion=data;
+if(data.aboutPlayer===myName){
+showScreen('screen-result');
+document.getElementById('result-icon').textContent='😎';
+document.getElementById('result-text').textContent='This one is about you!';
+document.getElementById('result-text').className='result-text';
+document.getElementById('result-answer').textContent='Sit back and watch them struggle.';
+document.getElementById('your-score').textContent=myScore+' pts';
+return;
+}
+showQuestion(data);
+});
+eventSource.addEventListener('reveal',function(e){var data=JSON.parse(e.data);showResult(data)});
+eventSource.addEventListener('game_over',function(e){var data=JSON.parse(e.data);showFinal(data)});
+}
+
+function showQuestion(data){
+showScreen('screen-answer');
+document.getElementById('q-about').textContent='About '+data.aboutPlayer+'...';
+document.getElementById('q-text').textContent=data.question;
+document.getElementById('answer-input').value='';
+document.getElementById('answer-status').textContent='';
+document.getElementById('submit-btn').disabled=false;
+var fill=document.getElementById('timer-bar-fill');
+fill.style.width='100%';fill.classList.remove('urgent');
+var timeLeft=20;
+clearInterval(timerInterval);
+timerInterval=setInterval(function(){timeLeft--;fill.style.width=(timeLeft/20*100)+'%';if(timeLeft<=5)fill.classList.add('urgent');if(timeLeft<=0){clearInterval(timerInterval);autoSubmit()}},1000);
+}
+
+function autoSubmit(){
+var answer=document.getElementById('answer-input').value.trim();
+if(answer)submitAnswer();
+else{document.getElementById('submit-btn').disabled=true;document.getElementById('answer-status').textContent="Time is up!"}
+}
+
+async function submitAnswer(){
+var answer=document.getElementById('answer-input').value.trim();
+if(!answer){document.getElementById('answer-status').textContent='Type something!';document.getElementById('answer-status').className='status-msg error';return}
+clearInterval(timerInterval);
+document.getElementById('submit-btn').disabled=true;
+document.getElementById('answer-status').textContent='Submitted! Waiting for reveal...';
+document.getElementById('answer-status').className='status-msg';
+await fetch(API+'/api/game/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,playerName:myName,questionIndex:currentQuestion.questionIndex,answer:answer})});
+}
+
+function showResult(data){
+clearInterval(timerInterval);
+showScreen('screen-result');
+var myResult=data.results[myName];
+if(!myResult){
+document.getElementById('result-icon').textContent='😎';
+document.getElementById('result-text').textContent='That was about you!';
+document.getElementById('result-text').className='result-text';
+document.getElementById('result-answer').textContent='Answer: "'+data.correctAnswer+'"';
+}else if(myResult.correct){
+myScore++;
+document.getElementById('result-icon').textContent='🎉';
+document.getElementById('result-text').textContent='You got it!';
+document.getElementById('result-text').className='result-text result-correct';
+document.getElementById('result-answer').textContent='"'+data.correctAnswer+'"';
+}else{
+document.getElementById('result-icon').textContent='😬';
+document.getElementById('result-text').textContent='I literally just told you!';
+document.getElementById('result-text').className='result-text result-wrong';
+document.getElementById('result-answer').textContent='Correct: "'+data.correctAnswer+'" - You said: "'+myResult.answer+'"';
+}
+document.getElementById('your-score').textContent=myScore+' pts';
+}
+
+function showFinal(data){
+showScreen('screen-final');
+var sorted=Object.entries(data.scores).sort(function(a,b){return b[1]-a[1]});
+var myRank=sorted.findIndex(function(x){return x[0]===myName})+1;
+document.getElementById('final-position').textContent='#'+myRank;
+document.getElementById('final-name').textContent=myName;
+document.getElementById('final-score').textContent=(data.scores[myName]||0)+' pts';
+if(myRank===1)document.getElementById('final-msg').textContent='You actually listen! Incredible.';
+else if(myRank===2)document.getElementById('final-msg').textContent='So close. Almost a good listener.';
+else document.getElementById('final-msg').textContent='Maybe try listening next time? Just a thought.';
+}
+
+document.getElementById('input-code').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('input-name').focus()});
+document.getElementById('input-name').addEventListener('keydown',function(e){if(e.key==='Enter')joinGame()});
+document.getElementById('answer-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitAnswer()}});
+</script>
+</body>
+</html>

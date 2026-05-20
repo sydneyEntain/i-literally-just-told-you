@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I LITERALLY JUST TOLD YOU</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#14141f;--surface-2:#1e1e2e;--accent:#f7c948;--accent-glow:rgba(247,201,72,0.3);--pink:#ff6b9d;--blue:#4ecdc4;--purple:#a855f7;--text:#f0f0f0;--text-dim:#8888aa;--correct:#4ecdc4;--wrong:#ff6b6b}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(168,85,247,0.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(247,201,72,0.06) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(78,205,196,0.06) 0%,transparent 50%);z-index:0}
+.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:40px 24px}
+.screen{display:none}.screen.active{display:block}
+.title-screen{text-align:center;padding-top:8vh}
+.title-logo{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.1;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.title-sub{font-size:1.1rem;color:var(--text-dim);margin-bottom:16px}.title-sub em{color:var(--accent);font-style:normal}
+.join-code-display{font-family:'Space Grotesk',sans-serif;font-size:3rem;font-weight:700;letter-spacing:8px;color:var(--accent);margin:24px 0;padding:20px 40px;background:var(--surface);border:2px solid rgba(247,201,72,0.3);border-radius:16px;display:inline-block}
+.join-url{font-size:0.95rem;color:var(--text-dim);margin-bottom:32px}.join-url code{color:var(--blue);background:var(--surface-2);padding:4px 10px;border-radius:6px}
+.lobby-players{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:32px 0;min-height:60px}
+.lobby-chip{padding:10px 20px;background:var(--surface);border:1px solid #2a2a3e;border-radius:30px;font-weight:600;font-size:0.95rem}
+.nav-btn{padding:14px 32px;font-size:1rem;font-weight:600;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif}
+.nav-btn.primary{background:var(--accent);color:#0a0a0f}.nav-btn.primary:hover{transform:translateY(-2px);box-shadow:0 4px 20px var(--accent-glow)}
+.nav-btn.secondary{background:var(--surface-2);color:var(--text);border:1px solid #3a3a4e}
+.nav-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+.round-badge{display:inline-block;padding:6px 16px;background:var(--surface-2);border:1px solid var(--purple);border-radius:20px;font-size:0.8rem;color:var(--purple);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+/* INTRO */
+.intro-card{background:var(--surface);border:1px solid #2a2a3e;border-radius:20px;padding:0;max-width:900px;margin:0 auto;overflow:hidden}
+.intro-header{display:flex;align-items:center;gap:32px;padding:40px 48px;background:linear-gradient(135deg,rgba(247,201,72,0.05),rgba(168,85,247,0.05))}
+.intro-photo{width:160px;height:160px;border-radius:50%;object-fit:cover;border:4px solid var(--accent);flex-shrink:0;box-shadow:0 0 40px var(--accent-glow)}
+.intro-placeholder{width:160px;height:160px;border-radius:50%;border:4px solid var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface-2);font-size:4rem;box-shadow:0 0 40px var(--accent-glow)}
+.intro-info{text-align:left}.intro-name{font-family:'Space Grotesk',sans-serif;font-size:2.5rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.intro-tagline{font-size:1rem;color:var(--accent);font-weight:600;font-style:italic}
+.intro-facts{list-style:none;padding:0 48px 40px}
+.intro-fact-item{display:flex;align-items:stretch;gap:16px;margin-bottom:12px;opacity:0;transform:translateY(20px);transition:all 0.5s cubic-bezier(0.16,1,0.3,1)}
+.intro-fact-item.visible{opacity:1;transform:translateY(0)}
+.fact-icon{font-size:1.5rem;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:12px;flex-shrink:0;border:1px solid #2a2a3e}
+.fact-content{flex:1;display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--surface-2);border-radius:12px;border:1px solid #2a2a3e}
+.fact-text{flex:1;font-size:1rem;line-height:1.4}
+.fact-img{width:80px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;opacity:0.8}
+/* INTERVIEW & QUIZ */
+.interview-host-card{background:var(--surface);border:1px solid #2a2a3e;border-radius:16px;padding:40px;max-width:800px;margin:0 auto;text-align:center}
+.interviewee-name{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+.interview-q-display{font-size:1.4rem;font-weight:600;margin-bottom:16px;line-height:1.4}
+.interview-answer-display{font-size:1.2rem;color:var(--accent);padding:16px 24px;background:rgba(247,201,72,0.08);border-radius:12px;border:1px solid rgba(247,201,72,0.2);margin-bottom:24px;min-height:56px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.interview-progress{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.progress-dot{width:10px;height:10px;border-radius:50%;background:var(--surface-2);border:1px solid #3a3a4e;transition:all 0.3s}
+.progress-dot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px var(--accent-glow)}
+.progress-dot.done{background:var(--blue);border-color:var(--blue)}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #2a2a3e}
+.quiz-round-info{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:var(--pink);font-weight:600}
+.quiz-timer{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--accent);padding:8px 20px;background:var(--surface);border-radius:10px;border:1px solid rgba(247,201,72,0.3);min-width:80px;text-align:center}
+.quiz-timer.urgent{color:var(--wrong);border-color:rgba(255,107,107,0.4);animation:timerPulse 0.5s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.quiz-question-card{background:var(--surface);border:1px solid #2a2a3e;border-radius:16px;padding:40px;text-align:center;margin-bottom:24px}
+.quiz-context{font-size:0.9rem;color:var(--text-dim);margin-bottom:12px}
+.quiz-question{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:600;line-height:1.4;margin-bottom:16px}
+.answers-waiting{padding:24px;text-align:center;color:var(--text-dim);font-size:1rem}
+.answers-waiting .count{font-family:'Space Grotesk',sans-serif;font-size:2.5rem;font-weight:700;color:var(--accent);display:block;margin-bottom:8px}
+.reveal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:24px}
+.reveal-card{padding:16px;background:var(--surface-2);border:2px solid #3a3a4e;border-radius:12px;text-align:center;animation:revealSlide 0.4s ease-out}
+.reveal-card.correct-card{border-color:var(--correct);background:rgba(78,205,196,0.1)}
+.reveal-card.wrong-card{border-color:var(--wrong);background:rgba(255,107,107,0.08)}
+.reveal-card .player-name{font-weight:600;margin-bottom:6px;font-size:0.9rem}
+.reveal-card .player-answer{font-size:0.85rem;color:var(--text-dim)}
+.reveal-card.correct-card .player-answer{color:var(--correct)}
+.reveal-card.wrong-card .player-answer{color:var(--wrong)}
+@keyframes revealSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.correct-answer-banner{text-align:center;margin-top:20px;padding:20px;background:rgba(247,201,72,0.08);border:1px solid rgba(247,201,72,0.2);border-radius:12px}
+.correct-answer-banner .label{font-size:0.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.correct-answer-banner .answer{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;color:var(--accent);margin-top:4px}
+.scoreboard{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.score-chip{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surface);border:1px solid #2a2a3e;border-radius:10px;font-size:0.9rem;transition:all 0.3s}
+.score-chip.leading{border-color:var(--accent);box-shadow:0 0 15px var(--accent-glow)}
+.score-chip .name{font-weight:600}.score-chip .points{color:var(--accent);font-weight:700;font-family:'Space Grotesk',sans-serif}
+.final-screen{text-align:center;padding-top:6vh}
+.winner-photo{width:180px;height:180px;border-radius:50%;object-fit:cover;border:4px solid var(--accent);margin:0 auto 16px;display:block;box-shadow:0 0 50px var(--accent-glow)}
+.winner-crown{font-size:4rem;margin-bottom:16px;animation:crownBounce 1s ease-in-out infinite}
+@keyframes crownBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.winner-name{font-family:'Space Grotesk',sans-serif;font-size:3rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.winner-title{font-size:1.1rem;color:var(--text-dim);margin-bottom:48px}
+.final-scores{max-width:500px;margin:0 auto}
+.final-score-row{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:var(--surface);border:1px solid #2a2a3e;border-radius:12px;margin-bottom:8px}
+.final-score-row:first-child{border-color:var(--accent);background:rgba(247,201,72,0.05)}
+.final-rank{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text-dim);width:30px}
+.final-score-row:first-child .final-rank{color:var(--accent)}
+.final-player-name{flex:1;text-align:left;margin-left:16px;font-weight:600}
+.final-points{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.2rem;color:var(--accent)}
+.confetti-piece{position:absolute;width:10px;height:10px;top:-10px;animation:confettiFall 3s linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@media(max-width:700px){.title-logo{font-size:2rem}.container{padding:24px 16px}.join-code-display{font-size:2rem;letter-spacing:4px;padding:16px 24px}.intro-header{flex-direction:column;text-align:center;padding:32px 24px}.intro-info{text-align:center}.intro-facts{padding:0 24px 32px}.fact-img{display:none}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="screen active" id="screen-lobby"><div class="title-screen">
+<div class="title-logo">I LITERALLY<br>JUST TOLD YOU</div>
+<p class="title-sub">The game show where <em>nobody listens</em></p>
+<div class="join-code-display" id="room-code">----</div>
+<div class="join-url">Players join at: <code id="join-url-text">loading...</code></div>
+<div class="lobby-players" id="lobby-players"></div>
+<button class="nav-btn primary" id="start-game-btn" disabled onclick="startIntros()">Waiting for players...</button>
+</div></div>
+<div class="screen" id="screen-intro"><div style="text-align:center;margin-bottom:24px;"><div class="round-badge">Meet The Contestants</div></div><div class="intro-card" id="intro-card"></div><div style="text-align:center;margin-top:24px;"><button class="nav-btn secondary" id="intro-fact-btn" onclick="nextIntroFact()">Next Fact</button><button class="nav-btn primary" id="intro-next-btn" style="display:none;margin-left:12px;" onclick="nextContestant()">Next Contestant</button></div></div>
+<div class="screen" id="screen-intro-quiz"><div class="scoreboard" id="scoreboard-iq"></div><div class="quiz-header"><div class="quiz-round-info" id="iq-round-info">Intro Quiz</div><div class="quiz-timer" id="iq-timer">20</div></div><div class="quiz-question-card"><div class="quiz-context" id="iq-context"></div><div class="quiz-question" id="iq-question"></div><div class="answers-waiting" id="iq-waiting"><span class="count" id="iq-count">0</span>answers submitted</div></div><div id="iq-reveal-area"></div><div style="text-align:center;margin-top:20px;"><button class="nav-btn primary" id="iq-reveal-btn" style="display:none;" onclick="iqReveal()">Reveal Answers</button><button class="nav-btn primary" id="iq-next-btn" style="display:none;" onclick="iqNext()">Next Question</button></div></div>
+<div class="screen" id="screen-interview"><div style="text-align:center;margin-bottom:32px;"><div class="round-badge">Round 2 - The Interviews</div><h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;margin-top:8px;">Listen carefully...</h2><p style="color:var(--text-dim);margin-top:4px;">You will be quizzed on this.</p></div><div class="interview-host-card"><div class="interview-progress" id="interview-progress"></div><div class="interviewee-name" id="interviewee-name"></div><div style="color:var(--text-dim);font-size:0.9rem;margin-bottom:24px;">Ask them out loud:</div><div class="interview-q-display" id="interview-q"></div><div class="interview-answer-display" id="interview-a" onclick="editAnswer()">Click to type their answer</div><div style="display:flex;gap:12px;justify-content:center;margin-top:24px;"><button class="nav-btn secondary" id="prev-q-btn" onclick="prevQ()">&#8592;</button><button class="nav-btn primary" id="next-q-btn" onclick="nextQ()">Next &#8594;</button></div></div></div>
+<div class="screen" id="screen-quiz"><div class="scoreboard" id="scoreboard"></div><div class="quiz-header"><div class="quiz-round-info" id="quiz-round-info">Question 1</div><div class="quiz-timer" id="quiz-timer">20</div></div><div class="quiz-question-card"><div class="quiz-context" id="quiz-context"></div><div class="quiz-question" id="quiz-question"></div><div class="answers-waiting" id="answers-waiting"><span class="count" id="answers-count">0</span>answers submitted</div></div><div id="reveal-area"></div><div style="text-align:center;margin-top:20px;"><button class="nav-btn primary" id="reveal-btn" style="display:none;" onclick="revealAnswers()">Reveal Answers</button><button class="nav-btn primary" id="next-quiz-btn" style="display:none;" onclick="nextQuizQuestion()">Next Question &#8594;</button></div></div>
+<div class="screen" id="screen-final"><div class="final-screen"><div class="winner-crown" id="winner-crown">&#128081;</div><div class="winner-name" id="winner-name"></div><div class="winner-title">Actually Listens To Their Colleagues</div><div class="final-scores" id="final-scores"></div><div style="margin-top:40px;"><button class="nav-btn secondary" onclick="location.reload()">Play Again</button></div></div></div>
+</div>
+<div id="confetti-container" style="position:fixed;inset:0;pointer-events:none;z-index:100;overflow:hidden"></div>
+<script>
+var API='';
+var roomCode='',players=[],eventSource=null,scores={};
+var interviewData=[],currentPlayerIdx=0,currentQIdx=0;
+var quizQuestions=[],currentQuizIdx=0,playerAnswers={},timerInterval=null,timeLeft=20;
+var currentIntroIdx=0,currentFactIdx=0;
+var iqQuestions=[],iqIdx=0,iqAnswers={},iqTimer=null,iqTimeLeft=20;
+
+var CONTESTANTS=[
+{name:'Sai',photo:'photos/Sai.png',tagline:'The Quiet Creative',facts:[
+{icon:'\ud83d\udcf7',text:'Fashion and product photography',img:'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&q=80'},
+{icon:'\ud83c\udfac',text:'Moved from films (storyboarding & art direction) into product design',img:'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=80'},
+{icon:'\ud83c\udf0d',text:'Enjoys exploring new places and capturing moments through the lens',img:'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&q=80'},
+{icon:'\ud83c\udfb5',text:'Really into music and uses it to set the mood or spark creativity',img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80'}
+],introQ:{q:'Sai moved into product design from which film discipline?',a:'Storyboarding & art direction'}},
+{name:'Nitin',photo:'photos/Nitin.png',tagline:'The Loveable Rogue',facts:[
+{icon:'\ud83e\ude99',text:'Stole a gold coin as a kid',img:'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=80'},
+{icon:'\ud83d\udd26',text:'Played with a torch during power cuts',img:'https://images.unsplash.com/photo-1530685932526-48ec92998eaa?w=400&q=80'},
+{icon:'\ud83e\ude74',text:'Has lost around 50 pairs of slippers',img:'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80'}
+],introQ:{q:'How many pairs of slippers has Nitin lost?',a:'50'}},
+{name:'Rohith',photo:null,tagline:'The Unlikely Hero',facts:[
+{icon:'\ud83c\udf36\ufe0f',text:'Avoided school so long his father once put chilli powder in his eyes',img:'https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?w=400&q=80'},
+{icon:'\ud83d\ude32',text:'His mother surprised him at college only to discover he had skipped',img:'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80'},
+{icon:'\ud83c\udfa8',text:'Scored 5 marks in first semester exam, switched to Arts',img:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80'},
+{icon:'\ud83d\udcf8',text:'His ex kept her wedding secret but the photographer was his friend',img:'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80'}
+],introQ:{q:'How many marks did Rohith score in his first semester exam?',a:'5'}},
+{name:'Karina',photo:'photos/Karina.png',tagline:'The Fearless One',facts:[
+{icon:'\ud83d\udfe1',text:'Yellow is her happy colour',img:'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=400&q=80'},
+{icon:'\ud83e\ude82',text:'Has done skydiving but cannot ride a bike',img:'https://images.unsplash.com/photo-1601024445121-e5b82f020549?w=400&q=80'},
+{icon:'\ud83c\udf55',text:'Hates tomatoes on pizza',img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80'}
+],introQ:{q:'Karina has done skydiving but cannot do what?',a:'Ride a bike'}},
+{name:'Varun',photo:'photos/Varun.png',tagline:'The Accidental Designer',facts:[
+{icon:'\u2728',text:'Design career found him before he planned for it',img:'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&q=80'},
+{icon:'\u26f0\ufe0f',text:'Completed a 5400ft mountain trek',img:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80'},
+{icon:'\u265f\ufe0f',text:'Won workplace chess and badminton tournaments',img:'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=400&q=80'},
+{icon:'\ud83c\udfe6',text:'Received cash rewards from a bank during school years',img:'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=80'},
+{icon:'\ud83c\udfcf',text:'Played cricket on a ground now turned into a stadium',img:'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&q=80'}
+],introQ:{q:'How high was the mountain trek Varun completed?',a:'5400ft'}}
+];
+
+var QUESTIONS=["What is the last thing you Googled?","What is a skill nobody at work knows about?","What is your most unpopular opinion?","If you could only use one font forever, what would it be?","What is the worst advice you ever received?","What would your autobiography be called?","What is your most useless talent?","What is a zero-stakes hill you would die on?","What is the strangest compliment you received?","What does everyone else love that you do not get?","What is your go-to karaoke song?","What is the most recent rabbit hole you fell down?","What movie or show can you quote too much of?","What is the pettiest thing that annoys you?","What did you want to be at age 10?","What last made you properly laugh?","If you could instantly master one thing, what?","What is your hottest design take?","What is the weirdest thing on your desk?","What word do you always misspell?"];
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.getElementById(id).classList.add('active')}
+
+async function init(){
+var res=await fetch(API+'/api/game/create',{method:'POST'});
+var data=await res.json();
+roomCode=data.roomCode;
+document.getElementById('room-code').textContent=roomCode;
+document.getElementById('join-url-text').textContent=location.origin+'/play.html';
+connectSSE();
+}
+
+function connectSSE(){
+eventSource=new EventSource(API+'/api/game/events/'+roomCode);
+eventSource.addEventListener('player_joined',function(e){var d=JSON.parse(e.data);players=d.players;renderLobby()});
+eventSource.addEventListener('answer_submitted',function(e){
+var d=JSON.parse(e.data);playerAnswers[d.player]=d.answer;
+var el=document.getElementById('answers-count');if(el)el.textContent=Object.keys(playerAnswers).length;
+var el2=document.getElementById('iq-count');if(el2)el2.textContent=Object.keys(iqAnswers).length;
+iqAnswers[d.player]=d.answer;
+});
+}
+
+function renderLobby(){
+document.getElementById('lobby-players').innerHTML=players.map(function(p){return '<div class="lobby-chip">'+p+'</div>'}).join('');
+var btn=document.getElementById('start-game-btn');
+if(players.length>=2){btn.disabled=false;btn.textContent='Start Game ('+players.length+' players)'}
+}
+
+// === INTROS ===
+function startIntros(){currentIntroIdx=0;currentFactIdx=0;showScreen('screen-intro');renderIntro()}
+
+function renderIntro(){
+var c=CONTESTANTS[currentIntroIdx];
+var photoHtml=c.photo?'<img class="intro-photo" src="'+c.photo+'" alt="'+c.name+'">':'<div class="intro-placeholder">&#128100;</div>';
+var headerHtml='<div class="intro-header">'+photoHtml+'<div class="intro-info"><div class="intro-name">'+c.name+'</div><div class="intro-tagline">'+c.tagline+'</div></div></div>';
+var factsHtml='<div class="intro-facts" id="intro-facts">'+c.facts.map(function(f){
+var imgTag=f.img?'<img class="fact-img" src="'+f.img+'" alt="">':'';
+return '<div class="intro-fact-item"><div class="fact-icon">'+f.icon+'</div><div class="fact-content"><span class="fact-text">'+f.text+'</span>'+imgTag+'</div></div>';
+}).join('')+'</div>';
+document.getElementById('intro-card').innerHTML=headerHtml+factsHtml;
+currentFactIdx=0;
+document.getElementById('intro-fact-btn').style.display='inline-block';
+document.getElementById('intro-next-btn').style.display='none';
+}
+
+function nextIntroFact(){
+var items=document.querySelectorAll('.intro-fact-item');
+if(currentFactIdx<items.length){items[currentFactIdx].classList.add('visible');currentFactIdx++}
+if(currentFactIdx>=items.length){document.getElementById('intro-fact-btn').style.display='none';document.getElementById('intro-next-btn').style.display='inline-block'}
+}
+
+function nextContestant(){
+currentIntroIdx++;
+if(currentIntroIdx>=CONTESTANTS.length){startIntroQuiz()}
+else{renderIntro()}
+}
+
+// === INTRO QUIZ (1 question per contestant) ===
+function startIntroQuiz(){
+iqQuestions=CONTESTANTS.map(function(c){return{aboutPlayer:c.name,question:c.introQ.q,correctAnswer:c.introQ.a}});
+players.forEach(function(p){scores[p]=0});
+iqIdx=0;
+showScreen('screen-intro-quiz');
+renderIQ();
+}
+
+function renderIQ(){
+var q=iqQuestions[iqIdx];
+iqAnswers={};playerAnswers={};
+renderScoreboardIQ();
+document.getElementById('iq-round-info').textContent='Intro Quiz - '+(iqIdx+1)+' of '+iqQuestions.length;
+document.getElementById('iq-context').textContent='About '+q.aboutPlayer+'...';
+document.getElementById('iq-question').textContent=q.question;
+document.getElementById('iq-count').textContent='0';
+document.getElementById('iq-waiting').style.display='block';
+document.getElementById('iq-reveal-area').innerHTML='';
+document.getElementById('iq-reveal-btn').style.display='none';
+document.getElementById('iq-next-btn').style.display='none';
+fetch(API+'/api/game/send-question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx})});
+startIQTimer();
+}
+
+function startIQTimer(){
+iqTimeLeft=20;var el=document.getElementById('iq-timer');el.textContent=iqTimeLeft;el.classList.remove('urgent');
+clearInterval(iqTimer);
+iqTimer=setInterval(function(){iqTimeLeft--;el.textContent=iqTimeLeft;if(iqTimeLeft<=5)el.classList.add('urgent');if(iqTimeLeft<=0){clearInterval(iqTimer);document.getElementById('iq-reveal-btn').style.display='inline-block';document.getElementById('iq-waiting').innerHTML='<span class="count">&#9200;</span>Time up!'}},1000);
+}
+
+function iqReveal(){
+clearInterval(iqTimer);
+document.getElementById('iq-reveal-btn').style.display='none';
+document.getElementById('iq-waiting').style.display='none';
+var q=iqQuestions[iqIdx];var correct=q.correctAnswer.toLowerCase().trim();
+var html='<div class="correct-answer-banner"><div class="label">Correct answer</div><div class="answer">"'+q.correctAnswer+'"</div></div><div class="reveal-grid">';
+players.forEach(function(p){
+var answer=iqAnswers[p]||playerAnswers[p]||'(no answer)';
+var isCorrect=answer.toLowerCase().trim()===correct||correct.includes(answer.toLowerCase().trim())||answer.toLowerCase().trim().includes(correct);
+if(isCorrect)scores[p]=(scores[p]||0)+1;
+html+='<div class="reveal-card '+(isCorrect?'correct-card':'wrong-card')+'"><div class="player-name">'+p+'</div><div class="player-answer">'+(isCorrect?'&#10003;':'&#10007;')+' "'+answer+'"</div></div>';
+});
+html+='</div>';
+document.getElementById('iq-reveal-area').innerHTML=html;
+document.getElementById('iq-next-btn').style.display='inline-block';
+renderScoreboardIQ();
+fetch(API+'/api/game/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx,results:{},correctAnswer:q.correctAnswer})});
+}
+
+function iqNext(){iqIdx++;if(iqIdx>=iqQuestions.length){hostStartInterviews()}else{renderIQ()}}
+
+function renderScoreboardIQ(){
+var maxScore=Math.max.apply(null,Object.values(scores).concat([0]));
+document.getElementById('scoreboard-iq').innerHTML=players.map(function(p){var l=scores[p]===maxScore&&maxScore>0;return '<div class="score-chip '+(l?'leading':'')+'"><span class="name">'+p+'</span><span class="points">'+(scores[p]||0)+'</span></div>'}).join('');
+}
+
+// === INTERVIEWS ===
+async function hostStartInterviews(){
+var shuffled=QUESTIONS.slice().sort(function(){return Math.random()-0.5});
+interviewData=players.map(function(player,i){return{player:player,questions:shuffled.slice(i*3,i*3+3),answers:['','','']}});
+await fetch(API+'/api/game/start-interviews',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,interviewData:interviewData})});
+currentPlayerIdx=0;currentQIdx=0;showScreen('screen-interview');renderInterview();
+}
+
+function renderInterview(){
+var data=interviewData[currentPlayerIdx];
+document.getElementById('interviewee-name').textContent=data.player;
+document.getElementById('interview-q').textContent=data.questions[currentQIdx];
+document.getElementById('interview-a').textContent=data.answers[currentQIdx]||'Click to type their answer';
+document.getElementById('interview-progress').innerHTML=data.questions.map(function(_,i){var cls='progress-dot';if(i<currentQIdx)cls+=' done';if(i===currentQIdx)cls+=' active';return '<div class="'+cls+'"></div>'}).join('');
+document.getElementById('prev-q-btn').style.visibility=(currentPlayerIdx===0&&currentQIdx===0)?'hidden':'visible';
+var isLastQ=currentQIdx===data.questions.length-1,isLastPlayer=currentPlayerIdx===interviewData.length-1;
+var btn=document.getElementById('next-q-btn');
+if(isLastQ&&isLastPlayer)btn.innerHTML='Start Quiz! &#127919;';else if(isLastQ)btn.innerHTML='Next Person &#8594;';else btn.innerHTML='Next &#8594;';
+}
+
+function editAnswer(){var data=interviewData[currentPlayerIdx];var c=data.answers[currentQIdx];var a=prompt('Type their answer:',c);if(a!==null){data.answers[currentQIdx]=a;document.getElementById('interview-a').textContent=a||'Click to type their answer'}}
+function nextQ(){var data=interviewData[currentPlayerIdx];if(currentQIdx<data.questions.length-1){currentQIdx++}else if(currentPlayerIdx<interviewData.length-1){currentPlayerIdx++;currentQIdx=0}else{startQuiz();return}renderInterview()}
+function prevQ(){if(currentQIdx>0){currentQIdx--}else if(currentPlayerIdx>0){currentPlayerIdx--;currentQIdx=interviewData[currentPlayerIdx].questions.length-1}renderInterview()}
+
+// === MAIN QUIZ ===
+async function startQuiz(){
+quizQuestions=[];
+interviewData.forEach(function(d){d.questions.forEach(function(q,i){if(d.answers[i])quizQuestions.push({aboutPlayer:d.player,question:q,correctAnswer:d.answers[i]})})});
+quizQuestions=quizQuestions.sort(function(){return Math.random()-0.5});
+currentQuizIdx=0;
+await fetch(API+'/api/game/start-quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,quizQuestions:quizQuestions})});
+showScreen('screen-quiz');renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+var q=quizQuestions[currentQuizIdx];playerAnswers={};
+renderScoreboard();
+document.getElementById('quiz-round-info').textContent='Question '+(currentQuizIdx+1)+' of '+quizQuestions.length;
+document.getElementById('quiz-context').textContent='About '+q.aboutPlayer+'...';
+document.getElementById('quiz-question').textContent=q.question;
+document.getElementById('answers-count').textContent='0';
+document.getElementById('answers-waiting').style.display='block';
+document.getElementById('reveal-area').innerHTML='';
+document.getElementById('reveal-btn').style.display='none';
+document.getElementById('next-quiz-btn').style.display='none';
+fetch(API+'/api/game/send-question',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:currentQuizIdx})});
+startTimer();
+}
+
+function startTimer(){timeLeft=20;var el=document.getElementById('quiz-timer');el.textContent=timeLeft;el.classList.remove('urgent');clearInterval(timerInterval);timerInterval=setInterval(function(){timeLeft--;el.textContent=timeLeft;if(timeLeft<=5)el.classList.add('urgent');if(timeLeft<=0){clearInterval(timerInterval);document.getElementById('reveal-btn').style.display='inline-block';document.getElementById('answers-waiting').innerHTML='<span class="count">&#9200;</span>Time up!'}},1000)}
+
+function revealAnswers(){
+clearInterval(timerInterval);document.getElementById('reveal-btn').style.display='none';document.getElementById('answers-waiting').style.display='none';
+var q=quizQuestions[currentQuizIdx];var correct=q.correctAnswer.toLowerCase().trim();var results={};
+var html='<div class="correct-answer-banner"><div class="label">Correct answer</div><div class="answer">"'+q.correctAnswer+'"</div></div><div class="reveal-grid">';
+players.forEach(function(p){if(p===q.aboutPlayer)return;var answer=playerAnswers[p]||'(no answer)';var isCorrect=answer.toLowerCase().trim()===correct||correct.includes(answer.toLowerCase().trim())||answer.toLowerCase().trim().includes(correct);if(isCorrect)scores[p]=(scores[p]||0)+1;results[p]={answer:answer,correct:isCorrect};html+='<div class="reveal-card '+(isCorrect?'correct-card':'wrong-card')+'"><div class="player-name">'+p+'</div><div class="player-answer">'+(isCorrect?'&#10003;':'&#10007;')+' "'+answer+'"</div></div>'});
+html+='</div>';document.getElementById('reveal-area').innerHTML=html;document.getElementById('next-quiz-btn').style.display='inline-block';renderScoreboard();
+fetch(API+'/api/game/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:currentQuizIdx,results:results,correctAnswer:q.correctAnswer})});
+}
+
+function nextQuizQuestion(){currentQuizIdx++;if(currentQuizIdx>=quizQuestions.length)showFinal();else renderQuizQuestion()}
+function renderScoreboard(){var m=Math.max.apply(null,Object.values(scores).concat([0]));document.getElementById('scoreboard').innerHTML=players.map(function(p){var l=scores[p]===m&&m>0;return '<div class="score-chip '+(l?'leading':'')+'"><span class="name">'+p+'</span><span class="points">'+(scores[p]||0)+'</span></div>'}).join('')}
+
+// === FINAL ===
+function showFinal(){
+showScreen('screen-final');
+var sorted=players.slice().sort(function(a,b){return(scores[b]||0)-(scores[a]||0)});
+var winner=sorted[0];
+// Check if winner has a photo in CONTESTANTS
+var winnerData=CONTESTANTS.find(function(c){return c.name.toLowerCase()===winner.toLowerCase()&&c.photo});
+var crownEl=document.getElementById('winner-crown');
+if(winnerData){crownEl.innerHTML='<img class="winner-photo" src="'+winnerData.photo+'" alt="'+winner+'">'}
+document.getElementById('winner-name').textContent=winner;
+document.getElementById('final-scores').innerHTML=sorted.map(function(p,i){return '<div class="final-score-row"><span class="final-rank">'+(i+1)+'</span><span class="final-player-name">'+p+'</span><span class="final-points">'+(scores[p]||0)+' pts</span></div>'}).join('');
+launchConfetti();
+fetch(API+'/api/game/end',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,scores:scores})});
+}
+
+function launchConfetti(){var container=document.getElementById('confetti-container');var colors=['#f7c948','#ff6b9d','#4ecdc4','#a855f7','#f59e0b','#3b82f6'];for(var i=0;i<80;i++){(function(i){setTimeout(function(){var p=document.createElement('div');p.className='confetti-piece';p.style.left=Math.random()*100+'%';p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.width=(Math.random()*8+6)+'px';p.style.height=(Math.random()*8+6)+'px';p.style.borderRadius=Math.random()>0.5?'50%':'2px';p.style.animationDuration=(Math.random()*2+2)+'s';container.appendChild(p);setTimeout(function(){p.remove()},4000)},i*30)})(i)}
+}
+
+document.addEventListener('keydown',function(e){
+if(e.key===' '||e.key==='ArrowRight'){
+if(document.getElementById('screen-intro').classList.contains('active')){var fb=document.getElementById('intro-fact-btn');var nb=document.getElementById('intro-next-btn');if(fb.style.display!=='none')nextIntroFact();else if(nb.style.display!=='none')nextContestant()}
+else if(document.getElementById('screen-intro-quiz').classList.contains('active')){var r=document.getElementById('iq-reveal-btn');var n=document.getElementById('iq-next-btn');if(r.style.display!=='none')iqReveal();else if(n.style.display!=='none')iqNext()}
+else{var r2=document.getElementById('reveal-btn');var n2=document.getElementById('next-quiz-btn');if(r2&&r2.style.display!=='none')revealAnswers();else if(n2&&n2.style.display!=='none')nextQuizQuestion()}
+}});
+
+init();
+</script>
+</body>
+</html>
