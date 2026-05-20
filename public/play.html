@@ -112,15 +112,6 @@ eventSource.addEventListener('question',function(e){
 var data=JSON.parse(e.data);
 currentQuestion=data;
 // Skip if question is about me
-if(data.aboutPlayer===myName){
-showScreen('screen-result');
-document.getElementById('result-icon').textContent='\ud83d\ude0e';
-document.getElementById('result-text').textContent='This one is about you!';
-document.getElementById('result-text').className='result-text';
-document.getElementById('result-answer').textContent='Sit back and watch them struggle.';
-document.getElementById('your-score').textContent=myScore+' pts';
-return;
-}
 showQuestion(data);
 });
 
@@ -169,7 +160,7 @@ showScreen('screen-result');
 var myResult=data.results[myName];
 if(!myResult){
 document.getElementById('result-icon').textContent='\ud83d\ude0e';
-document.getElementById('result-text').textContent='That was about you!';
+document.getElementById('result-text').textContent='No answer received';
 document.getElementById('result-text').className='result-text';
 document.getElementById('result-answer').textContent='Answer: "'+data.correctAnswer+'"';
 }else if(myResult.correct){
