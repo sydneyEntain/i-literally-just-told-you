@@ -313,7 +313,7 @@ renderScoreboard();
 document.getElementById('quiz-round-info').textContent='Question '+(currentQuizIdx+1)+' of '+quizQuestions.length;
 document.getElementById('quiz-context').textContent='About '+q.aboutPlayer+'...';
 document.getElementById('quiz-question').textContent=q.question;
-document.getElementById('answers-count').textContent='0';
+document.getElementById('answers-waiting').innerHTML='<span class="count" id="answers-count">0</span>answers submitted';
 document.getElementById('answers-waiting').style.display='block';
 document.getElementById('reveal-area').innerHTML='';
 document.getElementById('reveal-btn').style.display='none';
