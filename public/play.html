@@ -50,7 +50,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div class="screen" id="screen-waiting">
 <div class="waiting-icon">&#128066;</div>
 <div class="player-name-display" id="my-name-display"></div>
-<div class="waiting-text" id="waiting-text">You are in! Waiting for the host to start...</div>
+<div class="waiting-text">You are in! Waiting for the host to start...</div>
 </div>
 <div class="screen" id="screen-listening">
 <div class="waiting-icon">&#127911;</div>
@@ -60,7 +60,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div class="timer-bar"><div class="timer-bar-fill" id="timer-bar-fill"></div></div>
 <div class="q-about" id="q-about"></div>
 <div class="q-text" id="q-text"></div>
-<textarea class="answer-input" id="answer-input" placeholder="What did they say?"></textarea>
+<textarea class="answer-input" id="answer-input" placeholder="Type your answer..."></textarea>
 <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
 <div class="status-msg" id="answer-status"></div>
 </div>
@@ -81,12 +81,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </div>
 <script>
 var API='';
-var myName='';
-var roomCode='';
-var eventSource=null;
-var myScore=0;
-var currentQuestion=null;
-var timerInterval=null;
+var myName='',roomCode='',eventSource=null,myScore=0,currentQuestion=null,timerInterval=null;
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.getElementById(id).classList.add('active')}
 
@@ -94,7 +89,7 @@ async function joinGame(){
 roomCode=document.getElementById('input-code').value.trim().toUpperCase();
 myName=document.getElementById('input-name').value.trim();
 var status=document.getElementById('join-status');
-if(!roomCode||!myName){status.textContent='Please enter both a room code and your name';status.className='status-msg error';return}
+if(!roomCode||!myName){status.textContent='Enter both room code and name';status.className='status-msg error';return}
 try{
 var res=await fetch(API+'/api/game/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,playerName:myName})});
 if(!res.ok){var err=await res.json();throw new Error(err.error||'Could not join')}
@@ -106,13 +101,20 @@ connectSSE();
 
 function connectSSE(){
 eventSource=new EventSource(API+'/api/game/events/'+roomCode);
-eventSource.addEventListener('interviews_started',function(){showScreen('screen-listening')});
+
+// When interviews start, show listening screen (but question events override this)
+eventSource.addEventListener('interviews_started',function(){
+showScreen('screen-listening');
+});
+
+// ANY question event = show the answer screen immediately (works for intro quiz AND main quiz)
 eventSource.addEventListener('question',function(e){
 var data=JSON.parse(e.data);
 currentQuestion=data;
+// Skip if question is about me
 if(data.aboutPlayer===myName){
 showScreen('screen-result');
-document.getElementById('result-icon').textContent='😎';
+document.getElementById('result-icon').textContent='\ud83d\ude0e';
 document.getElementById('result-text').textContent='This one is about you!';
 document.getElementById('result-text').className='result-text';
 document.getElementById('result-answer').textContent='Sit back and watch them struggle.';
@@ -121,8 +123,9 @@ return;
 }
 showQuestion(data);
 });
-eventSource.addEventListener('reveal',function(e){var data=JSON.parse(e.data);showResult(data)});
-eventSource.addEventListener('game_over',function(e){var data=JSON.parse(e.data);showFinal(data)});
+
+eventSource.addEventListener('reveal',function(e){showResult(JSON.parse(e.data))});
+eventSource.addEventListener('game_over',function(e){showFinal(JSON.parse(e.data))});
 }
 
 function showQuestion(data){
@@ -136,13 +139,18 @@ var fill=document.getElementById('timer-bar-fill');
 fill.style.width='100%';fill.classList.remove('urgent');
 var timeLeft=20;
 clearInterval(timerInterval);
-timerInterval=setInterval(function(){timeLeft--;fill.style.width=(timeLeft/20*100)+'%';if(timeLeft<=5)fill.classList.add('urgent');if(timeLeft<=0){clearInterval(timerInterval);autoSubmit()}},1000);
+timerInterval=setInterval(function(){
+timeLeft--;
+fill.style.width=(timeLeft/20*100)+'%';
+if(timeLeft<=5)fill.classList.add('urgent');
+if(timeLeft<=0){clearInterval(timerInterval);autoSubmit()}
+},1000);
 }
 
 function autoSubmit(){
 var answer=document.getElementById('answer-input').value.trim();
 if(answer)submitAnswer();
-else{document.getElementById('submit-btn').disabled=true;document.getElementById('answer-status').textContent="Time is up!"}
+else{document.getElementById('submit-btn').disabled=true;document.getElementById('answer-status').textContent="Time's up!"}
 }
 
 async function submitAnswer(){
@@ -160,21 +168,21 @@ clearInterval(timerInterval);
 showScreen('screen-result');
 var myResult=data.results[myName];
 if(!myResult){
-document.getElementById('result-icon').textContent='😎';
+document.getElementById('result-icon').textContent='\ud83d\ude0e';
 document.getElementById('result-text').textContent='That was about you!';
 document.getElementById('result-text').className='result-text';
 document.getElementById('result-answer').textContent='Answer: "'+data.correctAnswer+'"';
 }else if(myResult.correct){
 myScore++;
-document.getElementById('result-icon').textContent='🎉';
+document.getElementById('result-icon').textContent='\ud83c\udf89';
 document.getElementById('result-text').textContent='You got it!';
 document.getElementById('result-text').className='result-text result-correct';
 document.getElementById('result-answer').textContent='"'+data.correctAnswer+'"';
 }else{
-document.getElementById('result-icon').textContent='😬';
+document.getElementById('result-icon').textContent='\ud83d\ude2c';
 document.getElementById('result-text').textContent='I literally just told you!';
 document.getElementById('result-text').className='result-text result-wrong';
-document.getElementById('result-answer').textContent='Correct: "'+data.correctAnswer+'" - You said: "'+myResult.answer+'"';
+document.getElementById('result-answer').textContent='Correct: "'+data.correctAnswer+'" \u2014 You said: "'+myResult.answer+'"';
 }
 document.getElementById('your-score').textContent=myScore+' pts';
 }
@@ -188,7 +196,7 @@ document.getElementById('final-name').textContent=myName;
 document.getElementById('final-score').textContent=(data.scores[myName]||0)+' pts';
 if(myRank===1)document.getElementById('final-msg').textContent='You actually listen! Incredible.';
 else if(myRank===2)document.getElementById('final-msg').textContent='So close. Almost a good listener.';
-else document.getElementById('final-msg').textContent='Maybe try listening next time? Just a thought.';
+else document.getElementById('final-msg').textContent='Maybe try listening next time?';
 }
 
 document.getElementById('input-code').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('input-name').focus()});

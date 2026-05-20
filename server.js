@@ -103,3 +103,10 @@ app.post('/api/game/end', function(req, res) {
 app.listen(PORT, '0.0.0.0', function() {
   console.log('Game running on port ' + PORT);
 });
+// Direct question broadcast (for intro quiz where questions aren't stored on server)
+app.post('/api/game/send-question-direct', function(req, res) {
+  var game = games[req.body.roomCode];
+  if (!game) return res.status(404).json({ error: 'Room not found' });
+  gamecast(req.body.roomCode, 'question', { questionIndex: req.body.questionIndex, aboutPlayer: req.body.aboutPlayer, question: req.body.question });
+  res.json({ ok: true });
+});
