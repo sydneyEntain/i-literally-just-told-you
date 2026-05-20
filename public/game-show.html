@@ -114,7 +114,7 @@ var roomCode='',players=[],eventSource=null,scores={};
 var interviewData=[],currentPlayerIdx=0,currentQIdx=0;
 var quizQuestions=[],currentQuizIdx=0,playerAnswers={},timerInterval=null,timeLeft=20;
 var currentIntroIdx=0,currentFactIdx=0;
-var iqQuestions=[],iqIdx=0,iqAnswers={},iqTimer=null,iqTimeLeft=20,currentIQId=null,currentQuizId=null,iqRevealed=false;
+var iqQuestions=[],iqIdx=0,iqAnswers={},iqTimer=null,iqTimeLeft=20,currentIQId=null,currentQuizId=null,iqRevealed=false,iqLocked=false;
 
 var CONTESTANTS=[
 {name:'Sai',photo:'photos/Sai.png',tagline:'The Quiet Creative',facts:[
@@ -245,7 +245,7 @@ iqTimer=setInterval(function(){iqTimeLeft--;el.textContent=iqTimeLeft;if(iqTimeL
 }
 
 function iqReveal(){
-if(iqRevealed)return;
+if(iqRevealed||iqLocked)return;
 iqRevealed=true;
 clearInterval(iqTimer);
 document.getElementById('iq-reveal-btn').style.display='none';
@@ -267,7 +267,7 @@ renderScoreboardIQ();
 fetch(API+'/api/game/reveal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:roomCode,questionIndex:iqIdx,results:iqResults,correctAnswer:q.correctAnswer})});
 }
 
-function iqNext(){iqIdx++;if(iqIdx>=iqQuestions.length){hostStartInterviews()}else{renderIQ()}}
+function iqNext(){iqIdx++;iqLocked=true;setTimeout(function(){iqLocked=false},2000);if(iqIdx>=iqQuestions.length){hostStartInterviews()}else{renderIQ()}}
 
 function renderScoreboardIQ(){
 var maxScore=Math.max.apply(null,Object.values(scores).concat([0]));
@@ -358,7 +358,7 @@ function launchConfetti(){var container=document.getElementById('confetti-contai
 document.addEventListener('keydown',function(e){
 if(e.key===' '||e.key==='ArrowRight'){
 if(document.getElementById('screen-intro').classList.contains('active')){var fb=document.getElementById('intro-fact-btn');var nb=document.getElementById('intro-next-btn');if(fb.style.display!=='none')nextIntroFact();else if(nb.style.display!=='none')nextContestant()}
-else if(document.getElementById('screen-intro-quiz').classList.contains('active')){var r=document.getElementById('iq-reveal-btn');var n=document.getElementById('iq-next-btn');if(r.style.display!=='none')iqReveal();else if(n.style.display!=='none')iqNext()}
+else if(document.getElementById('screen-intro-quiz').classList.contains('active')&&!iqLocked){var r=document.getElementById('iq-reveal-btn');var n=document.getElementById('iq-next-btn');if(r.style.display!=='none')iqReveal();else if(n.style.display!=='none')iqNext()}
 else{var r2=document.getElementById('reveal-btn');var n2=document.getElementById('next-quiz-btn');if(r2&&r2.style.display!=='none')revealAnswers();else if(n2&&n2.style.display!=='none')nextQuizQuestion()}
 }});
 
